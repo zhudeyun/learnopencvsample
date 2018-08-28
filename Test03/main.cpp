@@ -9,7 +9,8 @@ using namespace std;
 double scaleFactor = 1.1;
 int minNeighbors = 3;
 const char* window_name = "window";
-CascadeClassifier cascade;
+CascadeClassifier face_cascade;
+CascadeClassifier eyes_cascade;
 Mat srcImage, grayImage, dstImage;
 
 void thresh_callback(int, void*);
@@ -18,8 +19,8 @@ int main()
 {
 	namedWindow(window_name, WINDOW_AUTOSIZE);
 	//加载分类器	
-	cascade.load("D:\\H149042\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_default.xml");
-	
+	face_cascade.load("D:\\H149042\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_default.xml");
+	eyes_cascade.load("D:\\H149042\\opencv\\sources\\data\\haarcascades\\haarcascade_eye_tree_eyeglasses.xml");
 	//读取图片
 	srcImage = imread("hero.jpg");
 	
@@ -36,7 +37,7 @@ int main()
 
 void thresh_callback(int, void*)
 {
-	//定义其中颜色用于标注人脸
+	//定义七种颜色用于标注人脸
 	Scalar colors[] =
 	{
 		// 红橙黄绿青蓝紫
@@ -50,19 +51,38 @@ void thresh_callback(int, void*)
 	};
 	dstImage = srcImage.clone();
 	//检测人脸
-	vector<Rect> rect;
-	cascade.detectMultiScale(grayImage, rect, scaleFactor, minNeighbors, 0);
-	printf("检测到人脸个数:%d", rect.size());
+	vector<Rect> faces;
+	face_cascade.detectMultiScale(grayImage, faces, scaleFactor, minNeighbors, 0);
+	printf("检测到人脸个数:%d", faces.size());
 	//标记人脸
-	for (int i = 0; i < rect.size(); i++)
+	for (int i = 0; i < faces.size(); i++)
 	{
-		Point  center;
-		int radius;
-		center.x = cvRound((rect[i].x + rect[i].width * 0.5));
-		center.y = cvRound((rect[i].y + rect[i].height * 0.5));
+		//Point  center;
+		//int radius;
+		//center.x = cvRound((faces[i].x + faces[i].width * 0.5));
+		//center.y = cvRound((faces[i].y + faces[i].height * 0.5));
 
-		radius = cvRound((rect[i].width + rect[i].height) * 0.25);
-		circle(dstImage, center, radius, colors[i % 7], 2);
+		//radius = cvRound((faces[i].width + faces[i].height) * 0.25);
+		//circle(dstImage, center, radius, colors[i % 7], 2);	//draw circle
+
+		rectangle(dstImage, faces[i], colors[i % 7], 2, 8, 0);	//draw rect
+
+		Mat faceROI = grayImage(faces[i]);	//detect face roi
+
+		vector<Rect> eyes;
+		//-- In each face, detect eyes  
+		eyes_cascade.detectMultiScale(faceROI, eyes, 1.1, 1, CV_HAAR_DO_ROUGH_SEARCH, Size(3, 3));
+
+		for (size_t j = 0; j < eyes.size(); j++)
+		{
+			Rect rect(faces[i].x + eyes[j].x, faces[i].y + eyes[j].y, eyes[j].width, eyes[j].height);
+
+			Point eye_center(faces[i].x + eyes[j].x + eyes[j].width / 2, faces[i].y + eyes[j].y + eyes[j].height / 2);  
+			int radius = cvRound((eyes[j].width + eyes[j].height)*0.25);  
+			circle(dstImage, eye_center, radius, Scalar(255, 0, 0), 4, 8, 0);  
+			
+			//rectangle(dstImage, rect, colors[i % 7], 2, 8, 0);
+		}
 	}
 	imshow("人脸识别", dstImage);
 	
