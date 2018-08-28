@@ -19,8 +19,8 @@ int main()
 {
 	namedWindow(window_name, WINDOW_AUTOSIZE);
 	//加载分类器	
-	face_cascade.load("D:\\H149042\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_default.xml");
-	eyes_cascade.load("D:\\H149042\\opencv\\sources\\data\\haarcascades\\haarcascade_eye_tree_eyeglasses.xml");
+	face_cascade.load("D:\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_default.xml");
+	eyes_cascade.load("D:\\opencv\\sources\\data\\haarcascades\\haarcascade_eye_tree_eyeglasses.xml");
 	//读取图片
 	srcImage = imread("hero.jpg");
 	
